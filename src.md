@@ -70,7 +70,72 @@ TODO
 
 # the experiment
 
-TODO
+```python
+from random import randrange
+from hashlib import sha256
+from sympy import prod
+from sympy import mod_inverse
+from sympy import poly
+from sympy import abc
+from itertools import product
+
+n = 10
+m = 7
+p = 65537
+
+Q = [i for i in range(n)]
+O = [10 for _ in range(n)]
+
+
+def hash(q: int, a: int, c: int) -> int: return int.from_bytes(sha256(f'{q}:{a}:{c}'.encode()).digest(), 'big') % p
+def sssenc(W: list[int]) -> list[int]: return [sum(v * x ** i for i, v in enumerate(W)) % p for x in range(1, n+1)]
+def sssdec(Y: list[int]) -> int: return sum(y*prod((j+1)*mod_inverse(j-i, p) for j, y in enumerate(Y) if y is not None and j != i) for i, y in enumerate(Y) if y is not None) % p
+def modenc(y: int, k: int) -> int: return (k+y) % p
+def moddec(z: int, k: int) -> int: return (z-k) % p
+
+
+def peenc(s: int, A: list[int]) -> tuple[int, list[int]]:
+    c = randrange(p)
+    K = [hash(q, a, c) for q, a in zip(Q, A)]
+    Y = sssenc([s] + [randrange(p) for _ in range(1, m)])
+    return c, [modenc(y, k) for k, y in zip(K, Y)]
+
+
+def pedec(c: int, Z: int, A: list[int]) -> int:
+    K = [None if a is None else hash(q, a, c) for q, a in zip(Q, A)]
+    Y = [None if k is None else moddec(z, k) for k, z in zip(K, Z)]
+    return sssdec(Y)
+
+
+def pemitm(c: int, Z: int, U: list[int], V: list[int]) -> list[int]:
+    W = U+V
+    KK = [[hash(Q[i], j+1, c) for j in range(O[i])] for i in range(n)]
+    YY = [[moddec(Z[i], k) for k in KK[i]]for i in range(n)]
+    L = [list(reversed(poly(prod((abc.x-j-1)*mod_inverse(i-j, p) for j in U+V if j != i)).all_coeffs()))[m:] for i in range(n)]
+    LL = [[[YY[i][j]*v % p for v in L[i]] for j in range(O[i])] for i in range(n)]
+    LU = [LL[v] for v in U]
+    LV = [LL[v] for v in V]
+    DU = {I: tuple(sum(LU[i][I[i]][j] for i in range(len(U))) % p for j in range(len(W)-m)) for I in product(*[range(O[i]) for i in U])}
+    DV = {I: tuple(-sum(LV[i][I[i]][j] for i in range(len(U))) % p for j in range(len(W)-m)) for I in product(*[range(O[i]) for i in V])}
+    S = set([v for v in DU.values()]).intersection(set([v for v in DV.values()]))
+    P = [([i for i in DU if DU[i] == v], [i for i in DV if DV[i] == v]) for v in S]
+    II = [Iuu+Ivv for Iu, Iv in P for Iuu, Ivv in product(Iu, Iv)]
+    DX = [{W[v]: YY[W[v]][I[v]] for v in range(m)} for I in II]
+    LY = [[X[v] if v in X else None for v in range(n)] for X in DX]
+    return [sssdec(Y) for Y in LY]
+
+
+if __name__ == '__main__':
+    print(f'n={n}; m={m}; p={p}; Q={Q}; O={O};')
+    a = [1, 2, 3, 4, 3, 2, 1, 1, 2, 2]
+    s = 25
+    c, Z = peenc(s, a)
+    print(f'personal_entropy_encryption({s}, {a}) = {c} {Z}')
+    s = pedec(c, Z, [1, 2, 3, 4, 3, 2, None, None, None, 2])
+    print(f'personal_entropy_reconstruction({c}, {Z}) = {s}')
+    S = pemitm(c, Z, [0, 1, 2, 3, 4], [5, 6, 7, 8, 9])
+    print(f'using meet in the middle attack: secret is one of {S}')
+```
 
 # the conclusion
 
