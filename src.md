@@ -44,9 +44,21 @@ some common knowledges will be denoted here at the begining
 
 1. ask the user the same questions $\mathbf{q}$ to generate answers $\mathbf{a}$
 2. compute a list of $n$ hashes $\mathbf{k}$ where $k_i = H(\langle q_i, a_i, c \rangle)$
-3. decrypt the shares $\mathbf{y}$ using the equation $y_i = E^{-1}_{k_i}(z_i)$
-4. if at least $m$ questions were answered correctly, the secret $s$ can be reconstructed by *[shamir's secret sharing scheme](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)* with the correct $m$ answers by $s = \sum_{i \in \mathcal{M}}{y_i \prod_{\mathcal{M} \setminus \{i\}}{\frac{i}{j - i}}}$ where $\mathcal{M} \subseteq [1, n]$ contains the indices of the $m$ correct answers
+3. decrypt the shares $\mathbf{y}$ using the equation $y_i = E_{k_i}^{-1}(z_i)$
+4. if at least $m$ questions were answered correctly, the secret $s$ can be reconstructed by *[shamir's secret sharing scheme](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)* with the correct $m$ answers by $s = \sum_{i \in \mathcal{M}}{y_i \prod_{\mathcal{M} \setminus \lbrace i \rbrace}{\frac{i}{j - i}}}$ where $\mathcal{M} \subseteq [1, n]$ contains the indices of the $m$ correct answers
 
 ## problem definition
 
 the problem is to reconstruct the secret key $s$ by the random number $c$ and the encrpted shares $\mathbf{z}$ as well as the common knowledges denoted previously without asking user any questions
+
+# the solution
+
+the solution is essentially a meet in the middle attack
+
+1. construct the hash matrix $\mathbf{K}$ where $k_{i,j} = H(\langle q_i, j, c \rangle)$
+2. decrypt all possible shares $\mathbf{Y}$ where $y_{i,j} = E_{k_{i, j}}^{-1}(z_i)$
+3. select $\mathcal{U}, \mathcal{V} \subset [1, n]$ where $\mathcal{U} \cap \mathcal{V} = \emptyset$ and $|\mathcal{U} \cup \mathcal{V}| \ge m$
+4. construct *[lagrange basis polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* $L_i(x) = \prod_{j \in \mathcal{U} \cup \mathcal{V} \setminus \lbrace i \rbrace }{\frac{x - i}{i - j}}$
+5. calculate the possible *[lagrange interpolation polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* set $\mathcal{L_U} = \lbrace \sum_{i \in \mathcal{U}}{y_{i,j} L_i(x)} | j \in [1, o_i] \rbrace$ and $\mathcal{L_V} = \lbrace \sum_{i \in \mathcal{V}}{y_{i,j} L_i(x)} | j \in [1, o_i] \rbrace$
+6. look for $L_{\mathcal{U}} \in \mathcal{L_U}$ and $L_{\mathcal{V}} \in \mathcal{L_V}$ where $\deg L_{\mathcal{U}} + L_{\mathcal{V}} \le m$
+7. reveal the secret key by $s = L_{\mathcal{U}}(0) + L_{\mathcal{V}}(0)$
