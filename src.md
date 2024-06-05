@@ -60,5 +60,5 @@ the solution is essentially a meet in the middle attack
 3. select $\mathcal{U}, \mathcal{V} \subset [1, n]$ where $\mathcal{U} \cap \mathcal{V} = \emptyset$ and $|\mathcal{U} \cup \mathcal{V}| \ge m$
 4. construct *[lagrange basis polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* $L_i(x) = \prod_{j \in \mathcal{U} \cup \mathcal{V} \setminus \lbrace i \rbrace }{\frac{x - i}{i - j}}$
 5. calculate the possible *[lagrange interpolation polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* set $\mathcal{L_U} = \lbrace \sum_{i \in \mathcal{U}}{y_{i,j} L_i(x)} | j \in [1, o_i] \rbrace$ and $\mathcal{L_V} = \lbrace \sum_{i \in \mathcal{V}}{y_{i,j} L_i(x)} | j \in [1, o_i] \rbrace$
-6. look for $L_{\mathcal{U}} \in \mathcal{L_U}$ and $L_{\mathcal{V}} \in \mathcal{L_V}$ where $\deg L_{\mathcal{U}} + L_{\mathcal{V}} \le m$
+6. look for $L_{\mathcal{U}} \in \mathcal{L_U}$ and $L_{\mathcal{V}} \in \mathcal{L_V}$ where $\deg (L_{\mathcal{U}} + L_{\mathcal{V}}) \le m$
 7. reveal the secret key by $s = L_{\mathcal{U}}(0) + L_{\mathcal{V}}(0)$
