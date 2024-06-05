@@ -45,7 +45,7 @@ some common knowledges will be denoted here at the begining
 1. ask the user the same questions $\mathbf{q}$ to generate answers $\mathbf{a}$
 2. compute a list of $n$ hashes $\mathbf{k}$ where $k_i = H(\langle q_i, a_i, c \rangle)$
 3. decrypt the shares $\mathbf{y}$ using the equation $y_i = E_{k_i}^{-1}(z_i)$
-4. if at least $m$ questions were answered correctly, the secret $s$ can be reconstructed by *[shamir's secret sharing scheme](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)* with the correct $m$ answers by $s = \sum_{i \in \mathcal{M}}{y_i \prod_{\mathcal{M} \setminus \lbrace i \rbrace}{\frac{i}{j - i}}} \mod p$ where $\mathcal{M} \subseteq [1, n]$ contains the indices of the $m$ correct answers
+4. if at least $m$ questions were answered correctly, the secret $s$ can be reconstructed by *[shamir's secret sharing scheme](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)* with the correct $m$ answers by $s = \sum_{i \in \mathcal{M}}{y_i \prod_{\mathcal{M} \setminus \lbrace i \rbrace}{\frac{j}{j - i}}} \mod p$ where $\mathcal{M} \subseteq [1, n]$ contains the indices of the $m$ correct answers
 
 ## problem definition
 
@@ -58,7 +58,7 @@ the solution is essentially a meet in the middle attack
 1. construct the hash matrix $\mathbf{K}$ where $k_{i,j} = H(\langle q_i, j, c \rangle)$
 2. decrypt all possible shares $\mathbf{Y}$ where $y_{i,j} = E_{k_{i, j}}^{-1}(z_i)$
 3. select $\mathcal{U}, \mathcal{V} \subset [1, n]$ where $\mathcal{U} \cap \mathcal{V} = \emptyset$ and $|\mathcal{U} \cup \mathcal{V}| \ge m$
-4. construct *[lagrange basis polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* $L_i(x) = \prod_{j \in \mathcal{U} \cup \mathcal{V} \setminus \lbrace i \rbrace }{\frac{x - i}{i - j}}$
+4. construct *[lagrange basis polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* $L_i(x) = \prod_{j \in \mathcal{U} \cup \mathcal{V} \setminus \lbrace i \rbrace }{\frac{x - j}{i - j}}$
 5. calculate the *[lagrange interpolation polynomial](https://en.wikipedia.org/wiki/Lagrange_polynomial)* matrix $\mathbf{L}$ where $L_{i, j} = y_{i,j} L_i(x)$
 6. generate the set of possible combinations of *[lagrange interpolation polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* over $\mathcal{U}$ and $\mathcal{V}$: $\mathcal{L_U} = \lbrace \sum_{i \in \mathcal{U}}{L_{i, j}} | j \in [1, o_i] \rbrace$ and $\mathcal{L_V} = \lbrace \sum_{i \in \mathcal{V}}{L_{i, j}} | j \in [1, o_i] \rbrace$
 7. look for $L_{\mathcal{U}} \in \mathcal{L_U}$ and $L_{\mathcal{V}} \in \mathcal{L_V}$ where $\deg (L_{\mathcal{U}} + L_{\mathcal{V}} \mod p) \le m$
