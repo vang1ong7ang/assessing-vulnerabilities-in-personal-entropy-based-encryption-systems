@@ -45,7 +45,7 @@ some common knowledges will be denoted here at the begining
 1. ask the user the same questions $\mathbf{q}$ to generate answers $\mathbf{a}$
 2. compute a list of $n$ hashes $\mathbf{k}$ where $k_i = H(\langle q_i, a_i, c \rangle)$
 3. decrypt the shares $\mathbf{y}$ using the equation $y_i = E_{k_i}^{-1}(z_i)$
-4. if at least $m$ questions were answered correctly, the secret $s$ can be reconstructed by *[shamir's secret sharing scheme](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)* with the correct $m$ answers by $s = \sum_{i \in \mathcal{M}}{y_i \prod_{\mathcal{M} \setminus \lbrace i \rbrace}{\frac{j}{j - i}}} \mod p$ where $\mathcal{M} \subseteq [1, n]$ contains the indices of the $m$ correct answers
+4. if at least $m$ questions were answered correctly, the secret $s$ can be reconstructed by *[shamir's secret sharing scheme](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)* with the correct $m$ answers by $s = \sum_{i \in \mathcal{M}}{y_i \prod_{x \in \mathcal{M} \setminus \lbrace i \rbrace}{\frac{x}{x - i}}} \mod p$ where $\mathcal{M} \subseteq [1, n]$ contains the indices of the $m$ correct answers
 
 ## problem definition
 
@@ -60,15 +60,29 @@ the solution is essentially a meet in the middle attack
 3. select $\mathcal{U}, \mathcal{V} \subset [1, n]$ where $\mathcal{U} \cap \mathcal{V} = \emptyset$ and $|\mathcal{U} \cup \mathcal{V}| \ge m$
 4. construct *[lagrange basis polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* $L_i(x) = \prod_{j \in \mathcal{U} \cup \mathcal{V} \setminus \lbrace i \rbrace }{\frac{x - j}{i - j}}$
 5. calculate the *[lagrange interpolation polynomial](https://en.wikipedia.org/wiki/Lagrange_polynomial)* matrix $\mathbf{L}$ where $L_{i, j} = y_{i,j} L_i(x)$
-6. generate the set of possible combinations of *[lagrange interpolation polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* over $\mathcal{U}$ and $\mathcal{V}$: $\mathcal{L_U} = \lbrace \sum_{i \in \mathcal{U}}{L_{i, j}} | j \in [1, o_i] \rbrace$ and $\mathcal{L_V} = \lbrace \sum_{i \in \mathcal{V}}{L_{i, j}} | j \in [1, o_i] \rbrace$
-7. look for $L_{\mathcal{U}} \in \mathcal{L_U}$ and $L_{\mathcal{V}} \in \mathcal{L_V}$ where $\deg (L_{\mathcal{U}} + L_{\mathcal{V}} \mod p) \le m$
-8. reveal the secret key by $s = L_{\mathcal{U}}(0) + L_{\mathcal{V}}(0) \mod p$
+6. conbime the *[lagrange interpolation polynomials](https://en.wikipedia.org/wiki/Lagrange_polynomial)* over $\mathcal{U}$ and $\mathcal{V}$: $L_{\mathcal{U},\mathbf{j}} = \sum_{i \in \mathcal{U}}{L_{i, j_i}}$ and $L_{\mathcal{V},\mathbf{j}} = \sum_{i \in \mathcal{V}}{L_{i, j_i}}$
+7. look for $\mathbf{j}$ satisfying $\deg (L_{\mathcal{U},\mathbf{j}} + L_{\mathcal{V},\mathbf{j}}) \le m$
+8. reveal the secret key $s = \sum_{i \in \mathcal{M}}{y_{i, j_i} \prod_{x \in \mathcal{M} \setminus \lbrace i \rbrace}{\frac{x}{x - i}}} \mod p$ where $\mathcal{M} \subseteq [1, n]$ contains any $m$ indices
 
 # the analysis
 
 TODO
 
 # the experiment
+
+## proof of concept
+
+a proof of concept written in Python will be shown below:
+
+- the *[SHA-256](https://en.wikipedia.org/wiki/SHA-2)* based *[hash function](https://en.wikipedia.org/wiki/Hash_function)* `hash` will be implemented as $H$
+- the functions `sssenc` and `sssdec` represent the encryption and reconstruction functions of *[shamir's secret sharing scheme](https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing)*
+- the functions `modenc` and `moddec` are the encryption function $E$ and decryption function $E^{-1}$ of the *[symmetric encryption scheme](https://en.wikipedia.org/wiki/Symmetric-key_algorithm)* using a basic *[caesar cipher](https://en.wikipedia.org/wiki/Caesar_cipher)* for simplicity
+
+with the predefined functions above, the proof of concept can be implemented:
+
+- the function `peenc` is the encryption function of the personal entropy encryption scheme
+- the function `pedec` is the reconstruction function of the personal entropy encryption scheme
+- the function `pemitm` reconstructs the secret key using a *[meet in the middle attack](https://en.wikipedia.org/wiki/Meet-in-the-middle_attack)*
 
 ```python
 from random import randrange
@@ -136,6 +150,8 @@ if __name__ == '__main__':
     S = pemitm(c, Z, [0, 1, 2, 3, 4], [5, 6, 7, 8, 9])
     print(f'using meet in the middle attack: secret is one of {S}')
 ```
+
+the function `pemitm` successfully reveals the secret key in this experiment
 
 # the conclusion
 
