@@ -125,18 +125,16 @@ def pemitm(c: int, Z: int, U: list[int], V: list[int]) -> list[int]:
     W = U+V
     KK = [[hash(Q[i], j+1, c) for j in range(O[i])] for i in range(n)]
     YY = [[moddec(Z[i], k) for k in KK[i]]for i in range(n)]
-    L = [list(reversed(poly(prod((abc.x-j-1)*mod_inverse(i-j, p) for j in U+V if j != i)).all_coeffs()))[m:] for i in range(n)]
-    LL = [[[YY[i][j]*v % p for v in L[i]] for j in range(O[i])] for i in range(n)]
-    LU = [LL[v] for v in U]
-    LV = [LL[v] for v in V]
-    DU = {I: tuple(sum(LU[i][I[i]][j] for i in range(len(U))) % p for j in range(len(W)-m)) for I in product(*[range(O[i]) for i in U])}
-    DV = {I: tuple(-sum(LV[i][I[i]][j] for i in range(len(U))) % p for j in range(len(W)-m)) for I in product(*[range(O[i]) for i in V])}
-    S = set([v for v in DU.values()]).intersection(set([v for v in DV.values()]))
-    P = [([i for i in DU if DU[i] == v], [i for i in DV if DV[i] == v]) for v in S]
-    II = [Iuu+Ivv for Iu, Iv in P for Iuu, Ivv in product(Iu, Iv)]
-    DX = [{W[v]: YY[W[v]][I[v]] for v in range(m)} for I in II]
-    LY = [[X[v] if v in X else None for v in range(n)] for X in DX]
-    return [sssdec(Y) for Y in LY]
+    Li = [list(reversed(poly(prod((abc.x-j-1)*mod_inverse(i-j, p) for j in U+V if j != i)).all_coeffs()))[m:] for i in range(n)]
+    Lij = [[[YY[i][j]*v % p for v in Li[i]] for j in range(O[i])] for i in range(n)]
+    Su = {I: tuple(sum(Lij[U[i]][I[i]][j] for i in range(len(U))) % p for j in range(len(W)-m)) for I in product(*[range(O[i]) for i in U])}
+    Sv = {I: tuple(-sum(Lij[V[i]][I[i]][j] for i in range(len(U))) % p for j in range(len(W)-m)) for I in product(*[range(O[i]) for i in V])}
+    S = set(v for v in Su.values()).intersection(set(v for v in Sv.values()))
+    J2 = [([i for i in Su if Su[i] == v], [i for i in Sv if Sv[i] == v]) for v in S]
+    J1 = [Ju+Jv for JU, JV in J2 for Ju, Jv in product(JU, JV)]
+    Jy = [{W[v]: YY[W[v]][J[v]] for v in range(m)} for J in J1]
+    YS = [[J[v] if v in J else None for v in range(n)] for J in Jy]
+    return [sssdec(Y) for Y in YS]
 
 
 if __name__ == '__main__':
